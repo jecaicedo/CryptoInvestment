@@ -165,6 +165,7 @@
     const $searchInput = document.getElementById('search-input');
     const $searchResults = document.getElementById('search-results');
     const $lastUpdate = document.getElementById('last-update');
+    let cgCurrentSymbol = null;
 
     function formatPrice(val) {
         if (val >= 1) return '$' + Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -476,13 +477,14 @@
         select.innerHTML = '<option value="">Selecciona una criptomoneda...</option>';
 
         cards.forEach(card => {
-            const slug = card.dataset.slug || card.dataset.name?.toLowerCase().replace(/\s+/g, '-');
-            const name = card.dataset.name;
-            const sym  = card.dataset.symbol;
-            const opt  = document.createElement('option');
-            opt.value       = slug;
-            opt.dataset.name = name;
-            opt.textContent = `${name} (${sym})`;
+            const slug   = card.dataset.slug;
+            const name   = card.dataset.name;
+            const sym    = card.dataset.symbol;
+            const opt    = document.createElement('option');
+            opt.value          = slug;
+            opt.dataset.name   = name;
+            opt.dataset.symbol = sym;
+            opt.textContent    = `${name} (${sym})`;
             if (slug === current) opt.selected = true;
             select.appendChild(opt);
         });
@@ -504,7 +506,9 @@
         cgStats.innerHTML = '';
 
         try {
-            const res  = await fetch(`${BASE}/crypto/coingecko-history?slug=${encodeURIComponent(cgCurrentSlug)}&range=${cgCurrentRange}`);
+            const res = await fetch(
+                `${BASE}/crypto/coingecko-history?slug=${encodeURIComponent(cgCurrentSlug)}&range=${cgCurrentRange}&name=${encodeURIComponent(cgCurrentName)}&symbol=${encodeURIComponent(cgCurrentSymbol)}`
+            );
             const data = await res.json();
 
             cgLoading.classList.add('hidden');
@@ -610,11 +614,13 @@
     }
 
     document.getElementById('cg-crypto-select').addEventListener('change', function () {
-        cgCurrentSlug = this.value;
-        cgCurrentName = this.options[this.selectedIndex]?.dataset?.name ?? '';
+        const selected  = this.options[this.selectedIndex];
+        cgCurrentSlug   = this.value;
+        cgCurrentName   = selected ? selected.dataset.name   ?? '' : '';
+        cgCurrentSymbol = selected ? selected.dataset.symbol ?? '' : '';
         if (cgCurrentSlug) loadCgChart();
     });
-
+    
     document.getElementById('cg-range-selector').addEventListener('click', (e) => {
         if (!e.target.classList.contains('range-btn')) return;
         cgCurrentRange = e.target.dataset.range;

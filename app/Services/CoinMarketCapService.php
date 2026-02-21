@@ -69,9 +69,84 @@ class CoinMarketCapService
         return $response->json('data', []);
     }
 
-    public function getCoinGeckoHistory(string $slug, string $range): array
+    private function resolveGeckoId(string $slug, string $name, string $symbol): string
     {
-        $geckoId = $this->slugMap[$slug] ?? $slug;
+        $staticMap = [
+            'bitcoin'      => 'bitcoin',
+            'ethereum'     => 'ethereum',
+            'bnb'          => 'binancecoin',
+            'solana'       => 'solana',
+            'xrp'          => 'ripple',
+            'dogecoin'     => 'dogecoin',
+            'cardano'      => 'cardano',
+            'toncoin'      => 'the-open-network',
+            'avalanche-2'  => 'avalanche-2',
+            'usd-coin'     => 'usd-coin',
+            'polkadot'     => 'polkadot',
+            'chainlink'    => 'chainlink',
+            'litecoin'     => 'litecoin',
+            'bitcoin-cash' => 'bitcoin-cash',
+            'stellar'      => 'stellar',
+            'monero'       => 'monero',
+            'ethereum-classic' => 'ethereum-classic',
+            'cosmos'       => 'cosmos',
+            'uniswap'      => 'uniswap',
+            'internet-computer' => 'internet-computer',
+            'aptos'        => 'aptos',
+            'near-protocol' => 'near',
+            'optimism-ethereum' => 'optimism',
+            'arbitrum'     => 'arbitrum',
+            'polygon'      => 'matic-network',
+            'shiba-inu'    => 'shiba-inu',
+            'pepe'         => 'pepe',
+            'wrapped-bitcoin' => 'wrapped-bitcoin',
+            'dai'          => 'dai',
+            'tether'       => 'tether',
+            'tron'         => 'tron',
+            'filecoin'     => 'filecoin',
+            'hedera'       => 'hedera-hashgraph',
+            'vechain'      => 'vechain',
+            'algorand'     => 'algorand',
+            'flow'         => 'flow',
+            'aave'         => 'aave',
+            'maker'        => 'maker',
+            'the-sandbox'  => 'the-sandbox',
+            'decentraland' => 'decentraland',
+            'axie-infinity' => 'axie-infinity',
+            'render'       => 'render-token',
+            'injective'    => 'injective-protocol',
+            'sui'          => 'sui',
+            'sei'          => 'sei-network',
+            'celestia'     => 'celestia',
+        ];
+
+        if (isset($staticMap[$slug])) {
+            return $staticMap[$slug];
+        }
+
+        $response = Http::withHeaders(['Accept' => 'application/json'])
+            ->get('https://api.coingecko.com/api/v3/search', [
+                'query' => $symbol,
+            ]);
+
+        if ($response->ok()) {
+            $coins = $response->json('coins', []);
+            foreach ($coins as $coin) {
+                if (
+                    strtolower($coin['symbol']) === strtolower($symbol) ||
+                    strtolower($coin['name'])   === strtolower($name)
+                ) {
+                    return $coin['id'];
+                }
+            }
+        }
+
+        return $slug;
+    }
+
+    public function getCoinGeckoHistory(string $slug, string $range, string $name = '', string $symbol = ''): array
+    {
+        $geckoId = $this->resolveGeckoId($slug, $name, $symbol);
 
         $days = match($range) {
             '1h'  => 1,
@@ -94,7 +169,7 @@ class CoinMarketCapService
         $prices = $response->json('prices', []);
 
         if ($range === '1h') {
-            $oneHourAgo = (now()->subHour()->timestamp) * 1000;
+            $oneHourAgo = now()->subHour()->timestamp * 1000;
             $prices = array_values(array_filter($prices, fn($p) => $p[0] >= $oneHourAgo));
         }
 
