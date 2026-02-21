@@ -44,7 +44,8 @@ DB_DATABASE=cryptoinvestment
 DB_USERNAME=tu_usuario_mysql
 DB_PASSWORD=tu_contraseña_mysql
 
-COINMARKETCAP_API_KEY=tu_api_key_aqui
+COINMARKETCAP_API_KEY=tu_api_key_aqui  # El proyecto ya incluye una key de ejemplo, puedes dejarla si no tienes una propia
+
 ```
 
 ### 5. Crea la base de datos
