@@ -123,11 +123,18 @@ class CryptoController extends Controller
     public function coinGeckoHistory(Request $request): JsonResponse
     {
         $request->validate([
-            'slug'  => 'required|string',
-            'range' => 'required|string|in:1h,24h,7d,30d',
+            'slug'   => 'required|string',
+            'range'  => 'required|string|in:1h,24h,7d,30d',
+            'name'   => 'sometimes|string',
+            'symbol' => 'sometimes|string',
         ]);
 
-        $data = $this->service->getCoinGeckoHistory($request->slug, $request->range);
+        $data = $this->service->getCoinGeckoHistory(
+            $request->slug,
+            $request->range,
+            $request->get('name', ''),
+            $request->get('symbol', '')
+        );
 
         if (empty($data)) {
             return response()->json(['error' => 'No se pudo obtener el historial'], 422);
