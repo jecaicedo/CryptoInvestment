@@ -18,7 +18,7 @@ Panel web en tiempo real para seguimiento personalizado de criptomonedas. Muestr
 ### 1. Clona el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/cryptoinvestment.git
+git clone https://github.com/jecaicedo/cryptoinvestment.git
 cd cryptoinvestment
 ```
 
